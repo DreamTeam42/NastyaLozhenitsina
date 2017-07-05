@@ -1,4 +1,5 @@
 import scrapy
+import json
 
 
 
@@ -11,14 +12,14 @@ class BashSpider(scrapy.Spider):
     # функция парсинга
     def parse(self, responce):
         # итерируем
-        for item in responce.css('div.tender-card'):
+        for item in responce.css('#content'):
             # выдёргиваем нужные блоки
-            block_1 = item.css('div.tender-card div.col-md-6 div#primaryInfo div.col-md-12')
-            block_2 = item.css('div.tender-card div.col-md-6 div#secondaryInfo div.col-lg-12')
-            block_3 = item.css('div.tender-card div.col-md-6 div#auctionInfo div.col-md-12')
-            block_4 = item.css('div.tender-card div.col-md-6 div#procedureInfo div.col-md-12')
-            block_5 = item.css('div.tender-card div.col-md-6 div#attachedFiles div.col-md-12')
-            photo = item.css('div.tender-card div.col-md-6 div.col-md-12.tender-card-image-container div.image-container.pull-right')
+            block_1 = item.css('#content div.tender-card div.col-md-6 div#primaryInfo div.col-md-12')
+            block_2 = item.css('#content div.tender-card div.col-md-6 div#secondaryInfo div.col-lg-12')
+            block_3 = item.css('#content div.tender-card div.col-md-6 div#auctionInfo div.col-md-12')
+            block_4 = item.css('#content div.tender-card div.col-md-6 div#procedureInfo div.col-md-12')
+            block_5 = item.css('#content div.tender-card div.col-md-6 div#attachedFiles div.col-md-12')
+            photo = item.css('#content div.tender-card div.col-md-6 div.col-md-12.tender-card-image-container div.image-container.pull-right')
 
             table_1 = block_1.css(' table')
             table_2 = block_2.css(' table')
@@ -26,8 +27,8 @@ class BashSpider(scrapy.Spider):
             table_4 = block_4.css(' table')
             table_5 = block_5.css(' table')
 
-            big_img = photo.xpath('//ul/big_img')
-            small_img = photo.xpath('//ul/small_img')
+            big_img = photo.xpath('//ul[@class="big_img"]//a/@href').extract()
+            small_img = photo.xpath('//ul[@class="small_img"]//a/@href').extract()
 
             #Строки в первом блоке
             contact = table_1.xpath('//tr[th/text()="\r\n                    Контакты менеджеров:\r\n                "]/td/text()').extract()
@@ -89,17 +90,21 @@ class BashSpider(scrapy.Spider):
             bidding_protocol = table_5.xpath('//tr[th/a/text()="\r\n                                Протокол торгов\r\n                            "]/td/a/@href').extract()
             bidding_protocol_2 = table_5.xpath('//tr[th/a/text()="\r\n                                Протокол торгов\r\n                            "]/td[2]/text()').extract()
 
-            #Фотографии
-            photo_main = big_img.css('a img ::attr(src)').extract()
-            photo = small_img.css('img ::attr(src)').extract()
-
             #Координаты с карты
+            coord = item.xpath('//*[@id="content"]/script/text()').extract() # текст js
+            coords = coord[0]
+            start = coords.find('[') + 1 # (первое вхождение "[") + 1
+            end = coords.rfind(']') # последнее вхождение "]"
+            string = coords[start:end] # Строка с необходимыми нам данными
+            parsed_coord =  json.loads(string) #Преобразование в словарь
 
+            coords_p = parsed_coord["Coords"] # взятие координат по ключу
+            id = parsed_coord["Id"] # взятие id по ключу
 
             # словарь
             yield {
                 #primaryInfo
-                'Infa_about_object': block_1.css('div.tender-card__description div::text').extract_first(), #Работает  корректно
+                'Infa_about_object': block_1.css('div.tender-card__description div::text').extract_first(),
                 'Contacts_managers': contact,
                 'Registry number': rnumber,
                 'Appointment': use,
@@ -154,10 +159,11 @@ class BashSpider(scrapy.Spider):
                 'Bidding_protocol': bidding_protocol,
                 'Bidding_protocol_2': bidding_protocol_2,
                 #Photo
-                'Photo_main': photo_main, # Не работает. Не верен путь? big_img = photo.xpath('//ul/big_img')    photo_main = big_img.css('a img ::attr(src)').extract()
-                'Photo': photo,# Аналогично
-                #Coordinates on the map
-                #С координатами и картой еще не разобралась
+                'Photo_main': big_img,
+                'Photo': small_img,
+                #Coordinates on the map and Id
+                'Coordinates': coords_p,
+                'Id': id,
 
             }
         # итерируемся по url страниц
