@@ -7,7 +7,7 @@ class BashSpider(scrapy.Spider):
     # имя парсера(поискового робота)
     name = 'BashSpider'
     # список ссылок для парсинга
-    start_urls = ['https://investmoscow.ru/tenders/tendercard/?TenderID=17037958']
+    start_urls = ['https://investmoscow.ru/tenders/tendercard/?tenderId=16990037']
 
     # функция парсинга
     def parse(self, responce):
@@ -17,15 +17,17 @@ class BashSpider(scrapy.Spider):
             block_1 = item.css('#content div.tender-card div.col-md-6 div#primaryInfo div.col-md-12')
             block_2 = item.css('#content div.tender-card div.col-md-6 div#secondaryInfo div.col-lg-12')
             block_3 = item.css('#content div.tender-card div.col-md-6 div#auctionInfo div.col-md-12')
-            block_4 = item.css('#content div.tender-card div.col-md-6 div#procedureInfo div.col-md-12')
-            block_5 = item.css('#content div.tender-card div.col-md-6 div#attachedFiles div.col-md-12')
+            block_4 = item.css('#content div.tender-card div.col-md-6 div#procedureInfo ')
+            block_5 = item.css('#content div.tender-card div.col-md-6 div#attachedFiles ')
             photo = item.css('#content div.tender-card div.col-md-6 div.col-md-12.tender-card-image-container div.image-container.pull-right')
 
             table_1 = block_1.css(' table')
             table_2 = block_2.css(' table')
             table_3 = block_3.css(' table')
             table_4 = block_4.css(' table')
-            table_5 = block_5.css(' table')
+            table_5 = block_5.xpath('./div[1]/div/table')
+
+
 
             big_img = photo.xpath('//ul[@class="big_img"]//a/@href').extract()
             small_img = photo.xpath('//ul[@class="small_img"]//a/@href').extract()
@@ -36,7 +38,10 @@ class BashSpider(scrapy.Spider):
             use =   table_1.xpath('//tr[th/text()="\r\n                    Назначение:\r\n                "]/td/text()').extract()
             type = table_1.xpath('//tr[th/text()="\r\n                    Тип объекта:\r\n                "]/td/text()').extract()
             area = table_1.xpath('//tr[th/text()="\r\n                    Район:\r\n                "]/td/text()').extract()
+            space_cars = table_1.xpath('//tr[th/text()="\r\n                    Площадь машиноместа, кв.м:\r\n                "]/td/text()').extract()
+            land_plot_rea = table_1.xpath('//tr[th/text()="\r\n                    Площадь земельного участка:\r\n                "]/td/text()').extract()
             metro = table_1.xpath('//tr[th/text()="\r\n                    Ближайшая станция метро:\r\n                "]/td/text()').extract()
+            area_garage = table_1.xpath('//tr[th/text()="\r\n                    Площадь гаража, кв.м:\r\n                "]/td/text()').extract()
             distance = table_1.xpath('//tr[th/text()="\r\n                    Расстояние до метро, км:\r\n                "]/td/text()').extract()
             l_area = table_1.xpath('//tr[th/text()="\r\n                    Жилая площадь, кв.м:\r\n                "]/td/text()').extract()
             n_area = table_1.xpath('//tr[th/text()="\r\n                    Нежилая площадь, кв.м:\r\n                "]/td/text()').extract()
@@ -49,7 +54,9 @@ class BashSpider(scrapy.Spider):
             parck_place = table_2.xpath('//tr[th/text()="\r\n                                        Наличие парковки\r\n                                    "]/td/text()').extract()
             telephone = table_2.xpath('//tr[th/text()="\r\n                                        Наличие телефонных линий\r\n                                    "]/td/text()').extract()
             security = table_2.xpath('//tr[th/text()="\r\n                                        Наличие охраны на объекте\r\n                                    "]/td/text()').extract()
+            type_entrance = table_2.xpath('//tr[th/text()="\r\n                                        Тип входа в здание\r\n                                    "]/td/text()').extract()
             buld_type = table_2.xpath('//tr[th/text()="\r\n                                        Тип здания\r\n                                    "]/td/text()').extract()
+            wall_material = table_2.xpath('//tr[th/text()="\r\n                                        Материал стен\r\n                                    "]/td/text()').extract()
             storey = table_2.xpath('//tr[th/text()="\r\n                                        Этажность дома\r\n                                    "]/td/text()').extract()
             line_house = table_2.xpath('//tr[th/text()="\r\n                                        Линия домов\r\n                                    "]/td/text()').extract()
             number_room = table_2.xpath('//tr[th/text()="\r\n                                            Номер помещения\r\n                                        "]/td/text()').extract()
@@ -66,6 +73,7 @@ class BashSpider(scrapy.Spider):
             link_2 = table_3.xpath('//tr[th/text()="\r\n                    Ссылка на torgi.gov.ru:\r\n                "]/td/a/@href').extract()
             type_p = table_3.xpath('//tr[th/text()="\r\n                    Вид начальной цены:\r\n                "]/td/text()').extract()
             size_deposit = table_3.xpath('//tr[th/text()="\r\n                    Размер задатка, руб.:\r\n                "]/td/text()').extract()
+            lease_term = table_3.xpath('//tr[th/text()="\r\n                    Срок аренды:\r\n                "]/td/text()').extract()
             status = table_3.xpath('//tr[th/text()="\r\n                    Статус торгов:\r\n                "]/td/text()').extract()
             victor = table_3.xpath('//tr[th/text()="\r\n                    Победитель:\r\n                "]/td/text()').extract()
             total_price = table_3.xpath('//tr[th/text()="\r\n                    Итоговая цена:\r\n                "]/td/text()').extract()
@@ -89,6 +97,12 @@ class BashSpider(scrapy.Spider):
             application_review_2 = table_5.xpath('//tr[th/a/text()="\r\n                                Протокол рассмотрения заявок\r\n                            "]/td[2]/text()').extract()
             bidding_protocol = table_5.xpath('//tr[th/a/text()="\r\n                                Протокол торгов\r\n                            "]/td/a/@href').extract()
             bidding_protocol_2 = table_5.xpath('//tr[th/a/text()="\r\n                                Протокол торгов\r\n                            "]/td[2]/text()').extract()
+            changes = table_5.xpath('//tr[th/a/text()="\r\n                                Сообщение о внесении изменений\r\n                            "]/td/a/@href').extract()
+            changes_2 = table_5.xpath('//tr[th/a/text()="\r\n                                Сообщение о внесении изменений\r\n                            "]/td[2]/text()').extract()
+            tender = table_5.xpath('//tr[th/a/text()="\r\n                                Извещение о торгах\r\n                            "]/td/a/@href').extract()
+            tender_2 = table_5.xpath('//tr[th/a/text()="\r\n                                Извещение о торгах\r\n                            "]/td[2]/text()').extract()
+            campaign_extension = table_5.xpath('//tr[th/a/text()="\r\n                                Сообщение о продлении заявочной кампании\r\n                            "]/td/a/@href').extract()
+            campaign_extension_2 = table_5.xpath('//tr[th/a/text()="\r\n                                Сообщение о продлении заявочной кампании\r\n                            "]/td[2]/text()').extract()
 
             #Координаты с карты
             coord = item.xpath('//*[@id="content"]/script/text()').extract() # текст js
@@ -110,7 +124,10 @@ class BashSpider(scrapy.Spider):
                 'Appointment': use,
                 'Object_type': type,
                 'Area': area,
+                'Space_cars, sq.m': space_cars,
+                'Land_plot_rea': land_plot_rea,
                 'Nearest_metro_station': metro,
+                'Area_garage, sq.m.': area_garage,
                 'Distance_to_metro, km': distance,
                 'Living_area, sq.m': l_area,
                 'Non-residential_area, sq.m.': n_area,
@@ -122,7 +139,9 @@ class BashSpider(scrapy.Spider):
                 'Parking_place': parck_place,
                 'Telephone_lines': telephone,
                 'Security_site': security,
+                'Type_entrance_building': type_entrance,
                 'Building_type': buld_type,
+                'Wall_Material': wall_material,
                 'Storey_house': storey,
                 'Line_houses': line_house,
                 'Number_room': number_room,
@@ -137,6 +156,7 @@ class BashSpider(scrapy.Spider):
                 'Link_2_to torgi.gov.ru': link_2,
                 'Type_initial_price': type_p,
                 'Size_deposit, rub.': size_deposit,
+                'Lease_term': lease_term,
                 'Status_trades': status,
                 'Victor': victor,
                 'Total_price': total_price,
@@ -158,6 +178,12 @@ class BashSpider(scrapy.Spider):
                 'Application_review_protocol_2': application_review_2,
                 'Bidding_protocol': bidding_protocol,
                 'Bidding_protocol_2': bidding_protocol_2,
+                'Notice_changes': changes,
+                'Notice_changes_2':changes_2 ,
+                'Notice_tender': tender,
+                'Notice_tender_2': tender_2,
+                'Extension_application_campaign': campaign_extension,
+                'Extension_application_campaign_2': campaign_extension_2,
                 #Photo
                 'Photo_main': big_img,
                 'Photo': small_img,
